@@ -1,3 +1,7 @@
 {
-  "dart.runPubGetOnPubspecChanges": "always"
+  "dart.runPubGetOnPubspecChanges": "always",
+  "editor.acceptSuggestionOnEnter": "on",
+  "cSpell.words": [
+    "pubspec"
+  ]
 }
