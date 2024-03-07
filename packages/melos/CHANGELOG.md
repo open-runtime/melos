@@ -1,3 +1,46 @@
+## 4.1.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: typo on help description of bootstrap --enforce-lockfile ([#636](https://github.com/invertase/melos/issues/636)). ([a5247561](https://github.com/invertase/melos/commit/a5247561804a1a030325366bcd05c6a6a7a5c7dd))
+ - **BREAKING** **FEAT**: make run script use melos_packages env variable scope ([#640](https://github.com/invertase/melos/issues/640)). ([e12ff57e](https://github.com/invertase/melos/commit/e12ff57efd71baae5eea20252d02894ec8be712e))
+
+## 4.0.0
+
+ - **FIX**: Compare with correct version when publishing ([#633](https://github.com/invertase/melos/issues/633)). ([9c4cd2eb](https://github.com/invertase/melos/commit/9c4cd2eb470de79eaa026ce8449d559f0a161374))
+ - **FIX**: Expose script api ([#573](https://github.com/invertase/melos/issues/573)). ([bb971018](https://github.com/invertase/melos/commit/bb9710185a735e7176646e509433f4c033a2c774))
+ - **FEAT**: Add `git-commit-version` flag to control commit creation ([#628](https://github.com/invertase/melos/issues/628)). ([cca71872](https://github.com/invertase/melos/commit/cca7187233727aaf84bd83bf41bca11c5f962372))
+ - **FEAT**: support authenticating private pub repository ([#627](https://github.com/invertase/melos/issues/627)). ([dddc7b31](https://github.com/invertase/melos/commit/dddc7b31b2bb2588c23efc6b5a43ce5acfab1329))
+ - **FEAT**: Add enforce lockfile bootstrap command config ([#600](https://github.com/invertase/melos/issues/600)). ([b9c6d0cc](https://github.com/invertase/melos/commit/b9c6d0ccd55698d244dd856c26767e5e3a9852ac))
+ - **FEAT**: add "--no-example" arg to "pub get " command for melos bootstrap ([#604](https://github.com/invertase/melos/issues/604)). ([8b69f51f](https://github.com/invertase/melos/commit/8b69f51fd71eec01ebeba7bf5e3f0a691feac986))
+ - **DOCS**: Add flutter_web_auth_2 to melos project list ([#624](https://github.com/invertase/melos/issues/624)). ([bbede2d2](https://github.com/invertase/melos/commit/bbede2d2a795f37b5db2468c3e130278b09c7bea))
+ - **BREAKING** **FIX**: Create commit when `--no-git-tag-version` is used ([#625](https://github.com/invertase/melos/issues/625)). ([b89133dc](https://github.com/invertase/melos/commit/b89133dc79e56920727451e409b3adc1d2e666ee))
+
+### Migration instructions
+
+If you were previously using `--no-git-tag-version` and were relying on that it
+didn't create a commit you now have to also pass `--no-git-commit-version` to
+prevent a commit from being automatically created after versioning.
+
+## 3.4.0
+
+ - **FEAT**: add support for bitbucket repository url ([#608](https://github.com/invertase/melos/issues/608)). ([6f3ea624](https://github.com/invertase/melos/commit/6f3ea62466547ecddf309a0a4d387ffdb3168a13))
+
+## 3.3.0
+
+ - **REFACTOR**: Remove unnecessary parenthesis to get analyzer green ([#602](https://github.com/invertase/melos/issues/602)). ([d368b439](https://github.com/invertase/melos/commit/d368b439941cb21a46f5f2681c70c5e438b301bf))
+ - **FIX**: `.idea/modules.xml` should always uses `/` instead of `\` ([#582](https://github.com/invertase/melos/issues/582)). ([5d49c4a6](https://github.com/invertase/melos/commit/5d49c4a6c7d227a56935366e9bf1c9aaf5b61122))
+ - **FEAT**: add option that allows to include commit bodies in changelog ([#606](https://github.com/invertase/melos/issues/606)). ([524e58a1](https://github.com/invertase/melos/commit/524e58a1d2c72d39b62e355997d06134c9342b53))
+ - **DOCS**(melos): add `coverde` to projects using Melos ([#562](https://github.com/invertase/melos/issues/562)). ([6a64b059](https://github.com/invertase/melos/commit/6a64b0595d01003145049125226fa2db2c45c918))
+
+## 3.2.0
+
+ - **REFACTOR**: fix analyzer issues ([#590](https://github.com/invertase/melos/issues/590)). ([2f19770e](https://github.com/invertase/melos/commit/2f19770eee9deff097d26202bece72bd6b2127a1))
+ - **FEAT**: support syncing common dependency versions ([#526](https://github.com/invertase/melos/issues/526)). ([39e5e499](https://github.com/invertase/melos/commit/39e5e499d71e95cf7794ae724ab2ccd3bb4e9fd5))
+ - **FEAT**: Expose `Changelog` and `ManualVersionChange` ([#538](https://github.com/invertase/melos/issues/538)). ([b049ed89](https://github.com/invertase/melos/commit/b049ed897402921a5b0f3b818e49b47e3b3bf4cf))
+ - **DOCS**: added link to `atproto.dart` ([#544](https://github.com/invertase/melos/issues/544)). ([aa891d82](https://github.com/invertase/melos/commit/aa891d8268f0aba7335ca274af747a15c9e72848))
+ - **DOCS**: growerp also use melos ([#551](https://github.com/invertase/melos/issues/551)). ([c679622f](https://github.com/invertase/melos/commit/c679622f1279107e31ec1d10d2b21c18877f7771))
+
 ## 3.1.1
 
  - **FIX**: pass extra args to exec scripts ([#540](https://github.com/invertase/melos/issues/540)). ([27b2275d](https://github.com/invertase/melos/commit/27b2275d5f44cbc3b93e780c88618363afca0b55))

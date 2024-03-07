@@ -1,14 +1,16 @@
 import 'package:melos/melos.dart';
+import 'package:melos/src/common/environment_variable_key.dart';
 import 'package:melos/src/common/glob.dart';
 import 'package:melos/src/common/io.dart';
 import 'package:melos/src/common/platform.dart';
 import 'package:melos/src/common/utils.dart';
-import 'package:melos/src/scripts.dart';
 import 'package:path/path.dart' as p;
+import 'package:platform/platform.dart';
 import 'package:pubspec/pubspec.dart';
 import 'package:test/test.dart';
 
 import '../matchers.dart';
+import '../mock_env.dart';
 import '../utils.dart';
 
 void main() {
@@ -31,7 +33,7 @@ void main() {
                 packageFilters: PackageFilters(
                   fileExists: const ['log.txt'],
                 ),
-              )
+              ),
             }),
           ),
         );
@@ -86,6 +88,92 @@ melos run test_script
           ),
         );
       },
+    );
+
+    test(
+      'merges filters from `packageFilters` and '
+      '`${EnvironmentVariableKey.melosPackages}`',
+      withMockPlatform(
+        () async {
+          final workspaceDir = await createTemporaryWorkspace(
+            runPubGet: true,
+            configBuilder: (path) => MelosWorkspaceConfig(
+              path: path,
+              name: 'test_package',
+              packages: [
+                createGlob('packages/**', currentDirectoryPath: path),
+              ],
+              scripts: Scripts({
+                'test_script': Script(
+                  name: 'test_script',
+                  run: 'melos exec -- "echo hello"',
+                  packageFilters: PackageFilters(
+                    fileExists: const ['log.txt'],
+                  ),
+                ),
+              }),
+            ),
+          );
+
+          final aDir = await createProject(
+            workspaceDir,
+            const PubSpec(name: 'a'),
+          );
+          writeTextFile(p.join(aDir.path, 'log.txt'), '');
+
+          await createProject(
+            workspaceDir,
+            const PubSpec(name: 'b'),
+          );
+
+          final cDir = await createProject(
+            workspaceDir,
+            const PubSpec(name: 'c'),
+          );
+          writeTextFile(p.join(cDir.path, 'log.txt'), '');
+
+          final logger = TestLogger();
+          final config =
+              await MelosWorkspaceConfig.fromWorkspaceRoot(workspaceDir);
+          final melos = Melos(
+            logger: logger,
+            config: config,
+          );
+
+          await melos.run(scriptName: 'test_script', noSelect: true);
+
+          expect(
+            logger.output.normalizeNewLines(),
+            ignoringAnsii(
+              '''
+melos run test_script
+  └> melos exec -- "echo hello"
+     └> RUNNING
+
+\$ melos exec
+  └> echo hello
+     └> RUNNING (in 1 packages)
+
+${'-' * terminalWidth}
+c:
+hello
+c: SUCCESS
+${'-' * terminalWidth}
+
+\$ melos exec
+  └> echo hello
+     └> SUCCESS
+
+melos run test_script
+  └> melos exec -- "echo hello"
+     └> SUCCESS
+''',
+            ),
+          );
+        },
+        platform: FakePlatform.fromPlatform(const LocalPlatform())
+          ..environment[EnvironmentVariableKey.melosPackages] = 'b,c',
+      ),
     );
 
     test('supports passing additional arguments to scripts', () async {
@@ -155,7 +243,7 @@ melos run hello
               name: 'hello',
               run: 'echo',
               exec: ExecOptions(),
-            )
+            ),
           }),
         ),
       );
@@ -225,7 +313,7 @@ melos run hello
               exec: ExecOptions(
                 concurrency: 1,
               ),
-            )
+            ),
           }),
         ),
       );

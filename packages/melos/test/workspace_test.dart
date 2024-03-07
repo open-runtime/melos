@@ -19,6 +19,7 @@ import 'dart:io';
 import 'dart:io' as io;
 
 import 'package:melos/melos.dart';
+import 'package:melos/src/common/environment_variable_key.dart';
 import 'package:melos/src/common/glob.dart';
 import 'package:melos/src/common/utils.dart';
 import 'package:melos/src/workspace.dart';
@@ -160,7 +161,7 @@ The packages that caused the problem are:
           configBuilder: (path) => MelosWorkspaceConfig.fromYaml(
             const {
               'name': 'test',
-              'packages': ['.']
+              'packages': ['.'],
             },
             path: path,
           ),
@@ -185,7 +186,7 @@ The packages that caused the problem are:
           configBuilder: (path) => MelosWorkspaceConfig.fromYaml(
             const {
               'name': 'test',
-              'packages': ['packages/a']
+              'packages': ['packages/a'],
             },
             path: path,
           ),
@@ -210,11 +211,12 @@ The packages that caused the problem are:
             expect(workspace.sdkPath, '/sdks/env');
           },
           platform: FakePlatform.fromPlatform(const LocalPlatform())
-            ..environment[envKeyMelosSdkPath] = '/sdks/env',
+            ..environment[EnvironmentVariableKey.melosSdkPath] = '/sdks/env',
         );
       });
 
-      test('prepend SDK bin directory to PATH', () async {
+      test('prepend SDK bin directory to ${EnvironmentVariableKey.path}',
+          () async {
         withMockPlatform(
           () {
             final workspace = VirtualWorkspaceBuilder(
@@ -224,7 +226,7 @@ The packages that caused the problem are:
             expect(workspace.path, '/sdk$pathEnvVarSeparator/bin');
           },
           platform: FakePlatform.fromPlatform(const LocalPlatform())
-            ..environment['PATH'] = '/bin',
+            ..environment[EnvironmentVariableKey.path] = '/bin',
         );
       });
     });
@@ -246,7 +248,7 @@ The packages that caused the problem are:
               config,
               packageFilters: PackageFilters(
                 scope: [
-                  createGlob('b', currentDirectoryPath: workspaceDir.path)
+                  createGlob('b', currentDirectoryPath: workspaceDir.path),
                 ],
                 includeDependencies: true,
               ),

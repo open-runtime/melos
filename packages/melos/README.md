@@ -120,7 +120,6 @@ The following projects are using Melos:
 
 - [firebase/flutterfire](https://github.com/firebase/flutterfire)
 - [Flame-Engine/Flame](https://github.com/flame-engine/flame)
-- [aws-amplify/amplify-flutter](https://github.com/aws-amplify/amplify-flutter)
 - [fluttercommunity/plus_plugins](https://github.com/fluttercommunity/plus_plugins)
 - [GetStream/stream-chat-flutter](https://github.com/GetStream/stream-chat-flutter)
 - [4itworks/opensource_qwkin_dart](https://github.com/4itworks/opensource_qwkin_dart)
@@ -140,6 +139,15 @@ The following projects are using Melos:
 - [NetGlade/auto_mappr](https://github.com/netglade/auto_mappr)
 - [myConsciousness/atproto.dart](https://github.com/myConsciousness/atproto.dart)
 - [GrowERP Flutter ERP](https://github.com/growerp/growerp)
+- [mrverdant13/coverde](https://github.com/mrverdant13/coverde)
+- [ThexXTURBOXx/flutter_web_auth_2](https://github.com/ThexXTURBOXx/flutter_web_auth_2)
+- [woltapp/wolt_modal_sheet](https://github.com/woltapp/wolt_modal_sheet)
+- [cfug/dio](https://github.com/cfug/dio)
+- [simolus3/drift](https://github.com/simolus3/drift)
+- [Lyokone/flutterlocation](https://github.com/Lyokone/flutterlocation)
+- [FlutterGen/flutter_gen](https://github.com/FlutterGen/flutter_gen)
+- [canonical/ubuntu-desktop-provision](https://github.com/canonical/ubuntu-desktop-provision)
+- [ubuntu/app-center](https://github.com/ubuntu/app-center)
 
 > Submit a PR if you'd like to add your project to the list. Update the
 > [README.md](https://github.com/invertase/melos/edit/main/packages/melos/README.md)

@@ -80,22 +80,21 @@ mixin _RunMixin on _Melos {
     bool noSelect = false,
     List<String> extraArgs = const [],
   }) async {
-    final workspace = await MelosWorkspace.fromConfig(
-      config,
+    final workspace = await createWorkspace(
       global: global,
       packageFilters: script.packageFilters?.copyWithUpdatedIgnore([
         ...script.packageFilters!.ignore,
         ...config.ignore,
       ]),
-      logger: logger,
     )
       ..validate();
 
     final environment = {
-      'MELOS_ROOT_PATH': config.path,
-      if (workspace.sdkPath != null) envKeyMelosSdkPath: workspace.sdkPath!,
+      EnvironmentVariableKey.melosRootPath: config.path,
+      if (workspace.sdkPath != null)
+        EnvironmentVariableKey.melosSdkPath: workspace.sdkPath!,
       if (workspace.childProcessPath != null)
-        'PATH': workspace.childProcessPath!,
+        EnvironmentVariableKey.path: workspace.childProcessPath!,
       ...script.env,
     };
 
@@ -148,9 +147,9 @@ mixin _RunMixin on _Melos {
           ? packages.map((e) => e.name).toList().join(',')
           : packages[selectedPackageIndex - 1].name;
       // MELOS_PACKAGES environment is detected by melos itself when through
-      // a defined script, this comma delimited list of package names is used
-      // instead of any filters if detected.
-      environment[envKeyMelosPackages] = packagesEnv;
+      // a defined script, this comma delimited list of package names used to
+      // scope the `packageFilters` if it is present.
+      environment[EnvironmentVariableKey.melosPackages] = packagesEnv;
     }
 
     return startCommand(
