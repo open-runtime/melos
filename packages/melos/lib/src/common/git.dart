@@ -1,20 +1,3 @@
-/*
- * Copyright (c) 2016-present Invertase Limited & Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this library except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 import 'dart:convert';
 import 'dart:io';
 
@@ -276,23 +259,8 @@ Future<List<GitCommit>> gitCommitsForPackage(
   String? diff,
   required MelosLogger logger,
 }) async {
-  var revisionRange = diff?.trim();
-  if (revisionRange != null) {
-    if (revisionRange.isEmpty) {
-      revisionRange = null;
-    } else if (!_gitVersionRangeShortHandRegExp.hasMatch(revisionRange)) {
-      // If the revision range is not a valid revision range short hand then we
-      // assume it's a commit or tag and default to the range from that
-      // commit/tag to HEAD.
-      revisionRange = '$revisionRange...HEAD';
-    }
-  }
-
-  if (revisionRange == null) {
-    final latestTag = await gitLatestTagForPackage(package, logger: logger);
-    // If no latest tag is found then we default to the entire git history.
-    revisionRange = latestTag != null ? '$latestTag...HEAD' : 'HEAD';
-  }
+  final revisionRange =
+      await _resolveRevisionRange(package, diff: diff, logger: logger);
 
   logger.trace(
     '[GIT] Getting commits for package ${package.name} for revision range '
@@ -326,6 +294,34 @@ Future<List<GitCommit>> gitCommitsForPackage(
       message: parts[3].trim(),
     );
   }).toList();
+}
+
+Future<bool> gitHasDiffInPackage(
+  Package package, {
+  required String? diff,
+  required MelosLogger logger,
+}) async {
+  final revisionRange =
+      await _resolveRevisionRange(package, diff: diff, logger: logger);
+
+  logger.trace(
+    '[GIT] Getting $diff diff for package ${package.name}.',
+  );
+
+  final processResult = await gitExecuteCommand(
+    arguments: [
+      '--no-pager',
+      'diff',
+      '--name-status',
+      revisionRange,
+      '--',
+      '.',
+    ],
+    workingDirectory: package.path,
+    logger: logger,
+  );
+
+  return (processResult.stdout as String).isNotEmpty;
 }
 
 /// Returns the current branch name of the local git repository.
@@ -395,4 +391,32 @@ Future<bool> gitIsBehindUpstream({
   );
 
   return isBehind;
+}
+
+Future<String> _resolveRevisionRange(
+  Package package, {
+  required String? diff,
+  required MelosLogger logger,
+}) async {
+  var revisionRange = diff?.trim();
+  if (revisionRange != null) {
+    if (revisionRange.isEmpty) {
+      revisionRange = null;
+    } else if (_gitVersionRangeShortHandRegExp.hasMatch(revisionRange)) {
+      return revisionRange;
+    } else {
+      // If the revision range is not a valid revision range short hand then we
+      // assume it's a commit or tag and default to the range from that
+      // commit/tag to HEAD.
+      return '$revisionRange...HEAD';
+    }
+  }
+
+  if (revisionRange == null) {
+    final latestTag = await gitLatestTagForPackage(package, logger: logger);
+    // If no latest tag is found then we default to the entire git history.
+    return latestTag != null ? '$latestTag...HEAD' : 'HEAD';
+  }
+
+  return 'HEAD';
 }

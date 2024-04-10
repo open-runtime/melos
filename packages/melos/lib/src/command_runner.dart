@@ -1,20 +1,3 @@
-/*
- * Copyright (c) 2016-present Invertase Limited & Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this library except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 import 'dart:async';
 import 'dart:io';
 
@@ -25,17 +8,19 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 import '../version.g.dart';
+import 'command_runner/analyze.dart';
 import 'command_runner/bootstrap.dart';
 import 'command_runner/clean.dart';
 import 'command_runner/exec.dart';
+import 'command_runner/format.dart';
 import 'command_runner/list.dart';
 import 'command_runner/publish.dart';
 import 'command_runner/run.dart';
 import 'command_runner/script.dart';
 import 'command_runner/version.dart';
 import 'common/exception.dart';
-import 'common/utils.dart';
 import 'common/utils.dart' as utils;
+import 'common/utils.dart';
 import 'logging.dart';
 import 'workspace_configs.dart';
 
@@ -77,6 +62,8 @@ class MelosCommandRunner extends CommandRunner<void> {
     addCommand(ListCommand(config));
     addCommand(PublishCommand(config));
     addCommand(VersionCommand(config));
+    addCommand(AnalyzeCommand(config));
+    addCommand(FormatCommand(config));
 
     // Keep this last to exclude all built-in commands listed above
     final script = ScriptCommand.fromConfig(config, exclude: commands.keys);

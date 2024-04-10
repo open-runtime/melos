@@ -1,20 +1,3 @@
-/*
- * Copyright (c) 2016-present Invertase Limited & Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this library except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -56,6 +39,13 @@ const filterOptionDependsOn = 'depends-on';
 const filterOptionNoDependsOn = 'no-depends-on';
 const filterOptionIncludeDependents = 'include-dependents';
 const filterOptionIncludeDependencies = 'include-dependencies';
+
+const publishOptionDryRun = 'dry-run';
+const publishOptionNoDryRun = 'no-dry-run';
+const publishOptionGitTagVersion = 'git-tag-version';
+const publishOptionNoGitTagVersion = 'no-git-tag-version';
+const publishOptionYes = 'yes';
+const publishOptionForce = 'force';
 
 extension Let<T> on T? {
   R? let<R>(R Function(T value) cb) {
@@ -450,6 +440,10 @@ Future<Process> startCommandRaw(
   );
 }
 
+final _runningPids = <int>[];
+
+List<int> get runningPids => UnmodifiableListView(_runningPids);
+
 Future<int> startCommand(
   List<String> command, {
   String? prefix,
@@ -458,6 +452,7 @@ Future<int> startCommand(
   bool onlyOutputOnError = false,
   bool includeParentEnvironment = true,
   required MelosLogger logger,
+  String? group,
 }) async {
   final processedCommand = command
       // Remove empty arguments.
@@ -471,6 +466,8 @@ Future<int> startCommand(
     environment: environment,
     includeParentEnvironment: includeParentEnvironment,
   );
+
+  _runningPids.add(process.pid);
 
   var stdoutStream = process.stdout;
   var stderrStream = process.stderr;
@@ -508,7 +505,10 @@ Future<int> startCommand(
     (event) {
       processStdout.addAll(event);
       if (!onlyOutputOnError) {
-        logger.write(utf8.decode(event, allowMalformed: true));
+        logger.logWithoutNewLine(
+          utf8.decode(event, allowMalformed: true),
+          group: group,
+        );
       }
     },
     onDone: processStdoutCompleter.complete,
@@ -517,7 +517,7 @@ Future<int> startCommand(
     (event) {
       processStderr.addAll(event);
       if (!onlyOutputOnError) {
-        logger.stderr(utf8.decode(event, allowMalformed: true));
+        logger.error(utf8.decode(event, allowMalformed: true), group: group);
       }
     },
     onDone: processStderrCompleter.complete,
@@ -527,9 +527,17 @@ Future<int> startCommand(
   await processStderrCompleter.future;
   final exitCode = await process.exitCode;
 
+  _runningPids.remove(process.pid);
+
   if (onlyOutputOnError && exitCode > 0) {
-    logger.stdout(utf8.decode(processStdout, allowMalformed: true));
-    logger.stderr(utf8.decode(processStderr, allowMalformed: true));
+    logger.log(
+      utf8.decode(processStdout, allowMalformed: true),
+      group: group,
+    );
+    logger.error(
+      utf8.decode(processStderr, allowMalformed: true),
+      group: group,
+    );
   }
 
   return exitCode;

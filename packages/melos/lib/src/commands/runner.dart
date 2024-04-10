@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:ansi_styles/ansi_styles.dart';
+import 'package:async/async.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:collection/collection.dart';
 import 'package:file/local.dart';
@@ -16,6 +17,7 @@ import 'package:pubspec/pubspec.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
+import '../command_configs/command_configs.dart';
 import '../command_runner/version.dart';
 import '../common/aggregate_changelog.dart';
 import '../common/environment_variable_key.dart';
@@ -30,9 +32,10 @@ import '../common/pending_package_update.dart';
 import '../common/platform.dart';
 import '../common/utils.dart' as utils;
 import '../common/utils.dart';
-import '../common/versioning.dart';
 import '../common/versioning.dart' as versioning;
+import '../common/versioning.dart';
 import '../global_options.dart';
+import '../lifecycle_hooks/lifecycle_hooks.dart';
 import '../logging.dart';
 import '../package.dart';
 import '../scripts.dart';
@@ -46,11 +49,14 @@ part 'list.dart';
 part 'publish.dart';
 part 'run.dart';
 part 'version.dart';
+part 'analyze.dart';
+part 'format.dart';
 
-enum _CommandWithLifecycle {
+enum CommandWithLifecycle {
   bootstrap,
   clean,
   version,
+  publish,
 }
 
 class Melos extends _Melos
@@ -61,7 +67,9 @@ class Melos extends _Melos
         _RunMixin,
         _ExecMixin,
         _VersionMixin,
-        _PublishMixin {
+        _PublishMixin,
+        _AnalyzeMixin,
+        _FormatMixin {
   Melos({
     required this.config,
     Logger? logger,
@@ -113,8 +121,8 @@ abstract class _Melos {
 
   Future<void> _runLifecycle(
     MelosWorkspace workspace,
-    _CommandWithLifecycle command,
-    FutureOr<void> Function() cb,
+    CommandWithLifecycle command,
+    FutureOr<void> Function() callback,
   ) async {
     final hooks = workspace.config.commands.lifecycleHooksFor(command);
     final preScript = hooks.pre;
@@ -126,7 +134,7 @@ abstract class _Melos {
     }
 
     try {
-      await cb();
+      await callback();
     } finally {
       if (postScript != null) {
         logger.newLine();
@@ -137,7 +145,7 @@ abstract class _Melos {
 
   Future<void> _runLifecycleScript(
     Script script, {
-    required _CommandWithLifecycle command,
+    required CommandWithLifecycle command,
   }) async {
     logger
       ..command('melos ${command.name} [${script.name}]')
@@ -163,14 +171,16 @@ abstract class _Melos {
 }
 
 extension _ResolveLifecycleHooks on CommandConfigs {
-  LifecycleHooks lifecycleHooksFor(_CommandWithLifecycle command) {
+  LifecycleHooks lifecycleHooksFor(CommandWithLifecycle command) {
     switch (command) {
-      case _CommandWithLifecycle.bootstrap:
+      case CommandWithLifecycle.bootstrap:
         return bootstrap.hooks;
-      case _CommandWithLifecycle.clean:
+      case CommandWithLifecycle.clean:
         return clean.hooks;
-      case _CommandWithLifecycle.version:
+      case CommandWithLifecycle.version:
         return version.hooks;
+      case CommandWithLifecycle.publish:
+        return publish.hooks;
     }
   }
 }

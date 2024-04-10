@@ -1,41 +1,24 @@
-/*
- * Copyright (c) 2016-present Invertase Limited & Contributors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this library except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 import '../commands/runner.dart';
+import '../common/utils.dart';
 import 'base.dart';
 
 class PublishCommand extends MelosCommand {
   PublishCommand(super.config) {
     setupPackageFilterParser();
     argParser.addFlag(
-      'dry-run',
+      publishOptionDryRun,
       abbr: 'n',
       defaultsTo: true,
       help: 'Validate but do not publish the package.',
     );
     argParser.addFlag(
-      'git-tag-version',
+      publishOptionGitTagVersion,
       abbr: 't',
-      negatable: false,
       help: 'Add any missing git tags for release. '
           'Note tags are only created if --no-dry-run is also set.',
     );
     argParser.addFlag(
-      'yes',
+      publishOptionYes,
       abbr: 'y',
       negatable: false,
       help: 'Skip the Y/n confirmation prompt when using --no-dry-run.',
@@ -52,9 +35,9 @@ class PublishCommand extends MelosCommand {
 
   @override
   Future<void> run() async {
-    final dryRun = argResults!['dry-run'] as bool;
-    final gitTagVersion = argResults!['git-tag-version'] as bool;
-    final yes = argResults!['yes'] as bool || false;
+    final dryRun = argResults![publishOptionDryRun] as bool;
+    final gitTagVersion = argResults![publishOptionGitTagVersion] as bool;
+    final yes = argResults![publishOptionYes] as bool || false;
 
     final melos = Melos(logger: logger, config: config);
     final packageFilters = parsePackageFilters(config.path);

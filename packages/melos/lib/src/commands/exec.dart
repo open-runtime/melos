@@ -5,12 +5,16 @@ mixin _ExecMixin on _Melos {
     List<String> execArgs, {
     GlobalOptions? global,
     PackageFilters? packageFilters,
-    int concurrency = 5,
+    int? concurrency,
     bool failFast = false,
     bool orderDependents = false,
+    Map<String, String> extraEnvironment = const {},
   }) async {
-    final workspace =
-        await createWorkspace(global: global, packageFilters: packageFilters);
+    concurrency ??= Platform.numberOfProcessors;
+    final workspace = await createWorkspace(
+      global: global,
+      packageFilters: packageFilters,
+    );
     final packages = workspace.filteredPackages.values;
 
     await _execForAllPackages(
@@ -20,6 +24,7 @@ mixin _ExecMixin on _Melos {
       failFast: failFast,
       concurrency: concurrency,
       orderDependents: orderDependents,
+      additionalEnvironment: extraEnvironment,
     );
   }
 
@@ -29,11 +34,13 @@ mixin _ExecMixin on _Melos {
     Package package,
     List<String> execArgs, {
     bool prefixLogs = true,
+    Map<String, String> extraEnvironment = const {},
   }) async {
     final packagePrefix = '[${AnsiStyles.blue.bold(package.name)}]: ';
 
     final environment = {
       ...currentPlatform.environment,
+      ...extraEnvironment,
       EnvironmentVariableKey.melosPackageName: package.name,
       EnvironmentVariableKey.melosPackageVersion: package.version.toString(),
       EnvironmentVariableKey.melosPackagePath: package.path,
@@ -84,6 +91,7 @@ mixin _ExecMixin on _Melos {
     required int concurrency,
     required bool failFast,
     required bool orderDependents,
+    Map<String, String> additionalEnvironment = const {},
   }) async {
     final failures = <String, int?>{};
     final pool = Pool(concurrency);
@@ -111,51 +119,66 @@ mixin _ExecMixin on _Melos {
       packages.map((package) => MapEntry(package.name, Completer<int?>())),
     );
 
-    await pool.forEach<Package, void>(sortedPackages, (package) async {
-      if (failFast && failures.isNotEmpty) {
-        return;
-      }
+    late final CancelableOperation<void> operation;
 
-      if (orderDependents) {
-        final dependenciesResults = await Future.wait(
-          package.allDependenciesInWorkspace.values
-              .map((package) => packageResults[package.name]?.future)
-              .whereNotNull(),
-        );
+    operation = CancelableOperation.fromFuture(
+      pool.forEach<Package, void>(sortedPackages, (package) async {
+        assert(!(failFast && failures.isNotEmpty));
 
-        final dependencyFailed = dependenciesResults
-            .any((exitCode) => exitCode == null || exitCode > 0);
-        if (dependencyFailed) {
-          packageResults[package.name]?.complete();
-          failures[package.name] = null;
-          return;
+        if (orderDependents) {
+          final dependenciesResults = await Future.wait(
+            package.allDependenciesInWorkspace.values
+                .map((package) => packageResults[package.name]?.future)
+                .whereNotNull(),
+          );
+
+          final dependencyFailed = dependenciesResults.any(
+            (exitCode) => exitCode == null || exitCode > 0,
+          );
+          if (dependencyFailed) {
+            packageResults[package.name]?.complete();
+            failures[package.name] = null;
+
+            return;
+          }
         }
-      }
 
-      if (!prefixLogs) {
-        logger
-          ..horizontalLine()
-          ..log(AnsiStyles.bgBlack.bold.italic('${package.name}:'));
-      }
+        if (!prefixLogs) {
+          logger
+            ..horizontalLine()
+            ..log(AnsiStyles.bgBlack.bold.italic('${package.name}:'));
+        }
 
-      final packageExitCode = await _execForPackage(
-        workspace,
-        package,
-        execArgs,
-        prefixLogs: prefixLogs,
-      );
-
-      packageResults[package.name]?.complete(packageExitCode);
-
-      if (packageExitCode > 0) {
-        failures[package.name] = packageExitCode;
-      } else if (!prefixLogs) {
-        logger.log(
-          AnsiStyles.bgBlack.bold.italic('${package.name}: ') +
-              AnsiStyles.bgBlack(successLabel),
+        final packageExitCode = await _execForPackage(
+          workspace,
+          package,
+          execArgs,
+          prefixLogs: prefixLogs,
+          extraEnvironment: additionalEnvironment,
         );
-      }
-    }).drain<void>();
+
+        packageResults[package.name]?.complete(packageExitCode);
+
+        if (packageExitCode > 0) {
+          failures[package.name] = packageExitCode;
+        } else if (!prefixLogs) {
+          logger.log(
+            AnsiStyles.bgBlack.bold.italic('${package.name}: ') +
+                AnsiStyles.bgBlack(successLabel),
+          );
+        }
+
+        if (packageExitCode > 0 && failFast) {
+          await operation.cancel();
+        }
+      }).drain<void>(),
+    );
+
+    await operation.valueOrCancellation();
+
+    if (failFast) {
+      runningPids.forEach(Process.killPid);
+    }
 
     logger
       ..horizontalLine()
@@ -174,6 +197,38 @@ mixin _ExecMixin on _Melos {
               'with exit code ${failures[packageName]})'}',
         );
       }
+
+      final canceled = <String>[];
+      for (final package in packages) {
+        if (failures.containsKey(package.name)) {
+          continue;
+        }
+
+        if (packageResults.containsKey(package.name)) {
+          final packageResult = packageResults[package.name]!;
+
+          if (packageResult.isCompleted) {
+            final exitCode = await packageResult.future;
+
+            if (exitCode == 0) {
+              continue;
+            }
+          }
+        }
+
+        canceled.add(package.name);
+      }
+
+      if (canceled.isNotEmpty) {
+        final canceledLogger = resultLogger
+            .child('$canceledLabel (in ${canceled.length} packages)');
+        for (final packageName in canceled) {
+          canceledLogger.child(
+            '${errorPackageNameStyle(packageName)} (due to failFast)',
+          );
+        }
+      }
+
       exitCode = 1;
     } else {
       resultLogger.child(successLabel);
