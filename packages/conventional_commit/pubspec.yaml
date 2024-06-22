@@ -2,11 +2,11 @@ name: conventional_commit
 description:
   Parse a git commit message using the Conventional Commits specification.
 version: 0.6.0+1
-repository: https://github.com/invertase/melos/tree/main/packages/conventional_commit
+repository: https://github.com/open-runtime/melos/tree/main/packages/conventional_commit
 issue_tracker: https://github.com/invertase/melos/issues
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.3.0 <4.5.0"
 
 dev_dependencies:
   collection: ^1.18.0
