@@ -1,3 +1,22 @@
+## 6.1.0
+
+ - **FIX**: `updateDependentsVersions` disabled with packages still mentioned in changelogs ([#719](https://github.com/invertase/melos/issues/719)). ([0ad8f585](https://github.com/invertase/melos/commit/0ad8f5851333bc5d197132f9e7ec7c0a8b1ca45a))
+ - **FIX**: tryParse line-length to int when it's not already an integer ([#708](https://github.com/invertase/melos/issues/708)). ([35ef462d](https://github.com/invertase/melos/commit/35ef462d7e9621bfd05bd3a7825a20acee91a289))
+ - **FEAT**: Filter by category ([#727](https://github.com/invertase/melos/issues/727)). ([71bc6104](https://github.com/invertase/melos/commit/71bc61043b74ccd5e7c529d7e7a055ff9be1b517))
+ - **FEAT**: added Alice to readme ([#725](https://github.com/invertase/melos/issues/725)). ([7b7a10e0](https://github.com/invertase/melos/commit/7b7a10e0596dad8f6bce3ddf23e9a57c4751daf3))
+ - **FEAT**: `changelogFormat` configuration, add `includeDate` boolean ([#720](https://github.com/invertase/melos/issues/720)). ([fed343b2](https://github.com/invertase/melos/commit/fed343b2dd58e9a30b29244c38f8ba815a104082))
+ - **FEAT**: add config for the format command ([#709](https://github.com/invertase/melos/issues/709)). ([5a6ec6f7](https://github.com/invertase/melos/commit/5a6ec6f708fe27e2fa608698340d36adf3e854ac))
+
+## 6.0.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: Only enforce lockfile when it exists ([#704](https://github.com/invertase/melos/issues/704)). ([be94adac](https://github.com/invertase/melos/commit/be94adacac71d8263079641229640932b387891a))
+ - **FEAT**: option to provide dependencies related filters from yaml ([#698](https://github.com/invertase/melos/issues/698)). ([92be9858](https://github.com/invertase/melos/commit/92be9858cd64f35cce2d3a3ba2f4184cd32d0955))
+ - **FEAT**: add `--line-length` option to `melos format` command ([#689](https://github.com/invertase/melos/issues/689)). ([048ab301](https://github.com/invertase/melos/commit/048ab301ca0f01f99d198c3ba6ca0f3c951078cf))
+ - **DOCS**: fix misalignment in readme ([#699](https://github.com/invertase/melos/issues/699)). ([5e588ef9](https://github.com/invertase/melos/commit/5e588ef92d5e5ad25bb99be5a279305c4c07e9a9))
+ - **BREAKING** **FIX**: Make `melos analyze` always use `dart analyze` ([#695](https://github.com/invertase/melos/issues/695)). ([2b16e360](https://github.com/invertase/melos/commit/2b16e3609bf3e00d15c42968dfbaeac2663a48c9))
+
 ## 5.3.0
 
  - **FIX**: melos analyze concurrency flag log output ([#678](https://github.com/invertase/melos/issues/678)). ([2ee575e4](https://github.com/invertase/melos/commit/2ee575e4f2087717d15600c4ab4228df1a7c1c30))
